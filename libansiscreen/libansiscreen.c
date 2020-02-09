@@ -11,6 +11,7 @@ int saved_flags_set = 0;
 void clearscreen() 
     {
         printf("%c[2J", ESC);
+        flush();
     }
 
 void moveto(line, column)
@@ -22,6 +23,7 @@ void moveto(line, column)
             exit(1);
         }
         printf("%c[%d;%df", ESC, line + 1, column + 1);
+        flush();
     }
 
 void settermraw() 
@@ -36,13 +38,15 @@ void settermraw()
       
       mode.sg_flags |= RAW;
       mode.sg_flags |= LITOUT;
-      mode.sg_flags |= CBREAK;
       mode.sg_flags |= PASS8;
       mode.sg_flags |= FLUSHO;
       mode.sg_flags &= ~ECHO;
       mode.sg_flags &= ~XTABS;
       mode.sg_flags &= ~CRMOD;
       ioctl(1, TIOCSETP, &mode);
+      
+      /* Set Telnet character mode */
+      /*printf("%c%c%c", 255, 252, 34);*/
     }
     
 void settermcooked() 
@@ -67,10 +71,12 @@ void getcursorpos(line, column)
         int read;
         *line = 0;
         *column = 0;
-                
+        
+        settermraw();
         printf("%c[6n", ESC);
         if(getchar() != ESC || getchar() != '[') {
             printf ("Invalid response to getcursorpos\n");
+            settermcooked();
             exit(1);
         }
         
@@ -82,6 +88,7 @@ void getcursorpos(line, column)
         
         if (read != ';') {
             printf ("Invalid formatted response to getcursorpos\n");
+            settermcooked();
             exit(1);
         }
         
@@ -93,6 +100,7 @@ void getcursorpos(line, column)
         
         if (read != 'R') {
             printf ("Invalid terminator to getcursorpos\n");
+            settermcooked();
             exit(1);
         }
         settermcooked();
@@ -115,6 +123,7 @@ void setcolor (color)
     int color;
     {
         printf("%c[%dm", ESC, color);
+        flush();
     }
 
 void setfgcolor (color)
@@ -133,28 +142,31 @@ void cursorup(number)
     int number;
     {
         printf("%c[%dA", ESC, number);
+        flush();
     }
 
 void cursordown(number)
     int number;
     {
         printf("%c[%dB", ESC, number);
+        flush();
     }
 
 void cursorforward(number)
     int number;
     {
         printf("%c[%dC", ESC, number);
+        flush();
     }
 
 void cursorbackward(number)
     int number;
     {
         printf("%c[%dD", ESC, number);
+        flush();
     }
 
 /* Drawing functions */
-
 void drawbox(top, left, bottom, right, clear) 
     int top;
     int left;
@@ -202,4 +214,5 @@ void drawbox(top, left, bottom, right, clear)
         
         /* Switch back to text mode */
         printf ("%c(B", ESC);
+        flush();
     }

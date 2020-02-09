@@ -198,6 +198,7 @@ void main(argc, argv)
       solve(start_pos_x, start_pos_y, start_pos_x, start_pos_y);
       
       sleep(30);
+      clearscreen();
     }
   }
 
